@@ -51,5 +51,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# add by yourself
 /Listings
 /Objects
+/Template.uvguix.*
