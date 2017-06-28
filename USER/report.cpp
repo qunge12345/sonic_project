@@ -108,7 +108,7 @@ void UART5_IRQHandler(void)
 	{
 		if(uart_buf.buf_count < MAX_BUF_SIZE)
 		{
-			uart_buf.buf[uart_buf.buf_count] = USART_ReceiveData(UART5);
+			uart_buf.buf[uart_buf.buf_count++] = USART_ReceiveData(UART5);
 		}
 	}
 }

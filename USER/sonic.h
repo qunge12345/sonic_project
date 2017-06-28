@@ -10,6 +10,8 @@
 
 #define SONIC_DETECT_RECV					0x211
 
+#define SONIC_MAX_LENGTH					5000
+
 class CSonic
 {
 public:

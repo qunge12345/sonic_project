@@ -77,24 +77,32 @@ void CSonic::read_data()
 		char tmp[2];
 		puart_read_buf(0,tmp,2);
 		_data[0] = ((uint16_t)tmp[0]<<8) + tmp[1];
+		if(_data[0] > SONIC_MAX_LENGTH)
+			_data[0] = 0xffff;
 	}
 	if(puart_get_buf_count(1) > 1)
 	{
 		char tmp[2];
 		puart_read_buf(1,tmp,2);
 		_data[1] = ((uint16_t)tmp[0]<<8) + tmp[1];
+		if(_data[1] > SONIC_MAX_LENGTH)
+			_data[1] = 0xffff;
 	}
 	if(puart_get_buf_count(2) > 1)
 	{
 		char tmp[2];
 		puart_read_buf(2,tmp,2);
 		_data[2] = ((uint16_t)tmp[0]<<8) + tmp[1];
+		if(_data[2] > SONIC_MAX_LENGTH)
+			_data[2] = 0xffff;
 	}
 	if(puart_get_buf_count(3) > 1)
 	{
 		char tmp[2];
 		puart_read_buf(3,tmp,2);
 		_data[3] = ((uint16_t)tmp[0]<<8) + tmp[1];
+		if(_data[3] > SONIC_MAX_LENGTH)
+			_data[3] = 0xffff;
 	}
 }
 

@@ -1,10 +1,12 @@
 #include "task.h"
-
 #include "led.h"
 #include "timer.h"
 #include "sonic.h"
 #include "pwr_ctrl.h"
 #include "report.h"
+#include "key.h"
+
+const char reset_cmd[] = {0xa5,0x5a,0x01,0x01,0x02,0xa5,0x5a};
 
 void sonnic_do_run()
 {
@@ -33,7 +35,7 @@ void sonnic_do_run()
 				++_valid_col;
 			}
 		}
-		
+		//显示有效超声
 		pwr_off(PWRALL);
 		for(uint16_t i = 0;i<6;++i)
 		{
@@ -133,7 +135,29 @@ void report_do_run()
 	
 	if(uart_get_buf_size() > 6)
 	{
-		
+		char cmd[7];
+		uart_read_buf(cmd,7);
+		uart_clear_buf();
+		for(uint16_t i = 0;i<7;++i)
+		{
+			if(cmd[i] != reset_cmd[i])
+				return;
+		}
+		NVIC_SystemReset();
+	}
+}
+
+void key_scan_do_run()
+{
+	static bool _is_first_in = true;
+	if(_is_first_in == true)
+	{
+		_is_first_in = false;
+		Key_Init();
+	}
+	if(key_is_pressed(0) == true)
+	{
+		NVIC_SystemReset();
 	}
 }
 
