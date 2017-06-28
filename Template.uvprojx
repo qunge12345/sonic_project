@@ -409,6 +409,11 @@
               <FileType>8</FileType>
               <FilePath>.\USER\task.cpp</FilePath>
             </File>
+            <File>
+              <FileName>report.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\USER\report.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -438,11 +443,6 @@
               <FileName>My_Tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HARDWARE\src\My_Tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>uart.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\USER\uart.cpp</FilePath>
             </File>
             <File>
               <FileName>puart.cpp</FileName>

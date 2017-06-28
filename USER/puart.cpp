@@ -48,7 +48,7 @@ void puart_init()
 //	USART2_Tx PA.2	
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2; //
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	//复用推挽输出
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	//复用推挽输出
   GPIO_Init(GPIOA, &GPIO_InitStructure);
 //	USART2_Rx PA.3
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;//

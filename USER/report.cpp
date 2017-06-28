@@ -1,6 +1,13 @@
-#include "uart.h"
+#include "report.h"
 #include "stdarg.h"
 #include "stdio.h"
+
+#define MAX_BUF_SIZE				16
+struct
+{
+	char buf[MAX_BUF_SIZE];
+	uint16_t buf_count;
+} uart_buf;
 
 void uart_init()
 {
@@ -27,13 +34,13 @@ void uart_init()
 	USART_InitStructure.USART_Mode=USART_Mode_Rx|USART_Mode_Tx;
 	USART_Init(UART5,&USART_InitStructure);
 	
-//	NVIC_InitStructure.NVIC_IRQChannel=UART5_IRQn;
-//	NVIC_InitStructure.NVIC_IRQChannelSubPriority=2;				//子优先级2
-//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2;	//抢占优先级2
-//	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;						//IRQ通道使能
-//	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化NVIC寄存器
-//	
-//	USART_ITConfig(UART5,USART_IT_RXNE,ENABLE);
+	NVIC_InitStructure.NVIC_IRQChannel=UART5_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority=2;				//子优先级2
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2;	//抢占优先级2
+	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;						//IRQ通道使能
+	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化NVIC寄存器
+	
+	USART_ITConfig(UART5,USART_IT_RXNE,ENABLE);
 	
 	USART_Cmd(UART5,ENABLE);
 }
@@ -53,6 +60,14 @@ void uart_put_string(char * s)
 	}
 }
 
+void uart_send_buf(char * s,uint16_t length)
+{
+	for(uint16_t i=0;i<length;++i)
+	{
+		uart_put_char(s[i]);
+	}
+}
+
 void uart_printf(const char *fmt, ...)
 {
 	char printf_buff[256];
@@ -65,4 +80,40 @@ void uart_printf(const char *fmt, ...)
 	uart_put_string(printf_buff);
 }
 
+void uart_clear_buf()
+{
+	uart_buf.buf_count = 0;
+}
+
+uint16_t uart_get_buf_size()
+{
+	return uart_buf.buf_count;
+}
+
+void uart_read_buf(char * s,uint16_t length)
+{
+	for(uint16_t i = 0;i < length;++i)
+	{
+		s[i] = uart_buf.buf[i];
+	}
+}
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+	 
+void UART5_IRQHandler(void)
+{
+	if(USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
+	{
+		if(uart_buf.buf_count < MAX_BUF_SIZE)
+		{
+			uart_buf.buf[uart_buf.buf_count] = USART_ReceiveData(UART5);
+		}
+	}
+}
+	 
+#ifdef __cplusplus
+}
+#endif
 

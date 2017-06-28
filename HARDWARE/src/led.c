@@ -55,6 +55,7 @@ void LED_OFF(u8 num)
 
 void led_write(uint16_t data)
 {
+	data = (~data)&0x0f;								//1:灭 0:亮
 	LED_PORT->ODR &= (~LED_ALL);
 	LED_PORT->ODR |= (data << 6);
 }
