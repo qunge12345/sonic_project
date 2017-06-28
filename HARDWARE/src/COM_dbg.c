@@ -8,15 +8,13 @@
 //	USART_InitTypeDef USART_InitStructure;
 //	GPIO_InitTypeDef GPIO_InitStructure;
 //	
-//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);
+//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5,ENABLE);
 //	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA,ENABLE);
 //	
 //	
 //	//TX
 //	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_9;
 //	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_AF;
-//	GPIO_InitStructure.GPIO_OType=GPIO_OType_PP;
-//	GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_UP;
 //	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
 //	GPIO_Init(GPIOA,&GPIO_InitStructure);
 //	//RX

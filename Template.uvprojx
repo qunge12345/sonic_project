@@ -10,12 +10,12 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060300::V5.06 update 3 (build 300)::ARMCC</pCCUsed>
+      <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F103RC</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F1xx_DFP.2.1.0</PackID>
+          <PackID>Keil.STM32F1xx_DFP.2.2.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20000000,0xC000) IROM(0x08000000,0x40000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -332,7 +332,7 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--cpp --locale=english</MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
               <IncludePath>.\SYSTEM\inc;.\STM32F10x_StdPeriph_Driver\inc;.\USER;.\CMSIS\CM3\CoreSupport;.\HARDWARE\inc</IncludePath>
@@ -394,6 +394,21 @@
               <FileType>1</FileType>
               <FilePath>.\USER\system_stm32f10x.c</FilePath>
             </File>
+            <File>
+              <FileName>Timer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\USER\Timer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>pwr_ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\pwr_ctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>task.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\USER\task.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -420,34 +435,29 @@
               <FilePath>.\HARDWARE\src\key.c</FilePath>
             </File>
             <File>
-              <FileName>led.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HARDWARE\src\led.c</FilePath>
-            </File>
-            <File>
               <FileName>My_Tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HARDWARE\src\My_Tim.c</FilePath>
             </File>
             <File>
-              <FileName>Sonic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HARDWARE\src\Sonic.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>System</GroupName>
-          <Files>
-            <File>
-              <FileName>delay.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\SYSTEM\src\delay.c</FilePath>
+              <FileName>uart.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\USER\uart.cpp</FilePath>
             </File>
             <File>
-              <FileName>sys.c</FileName>
+              <FileName>puart.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\USER\puart.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>sonic.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\USER\sonic.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>led.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\SYSTEM\src\sys.c</FilePath>
+              <FilePath>.\HARDWARE\src\led.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -589,5 +599,11 @@
       </Groups>
     </Target>
   </Targets>
+
+  <RTE>
+    <apis/>
+    <components/>
+    <files/>
+  </RTE>
 
 </Project>

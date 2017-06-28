@@ -1,8 +1,9 @@
 #include "Distance.h"
-#include "delay.h"
 #include "My_Tim.h"
 #include "led.h"
 #include "COM_dbg.h"
+
+#include "timer.h"
 #define Test_Timeout 1000
 #define Test_nTimes		5
 
@@ -173,19 +174,19 @@ int Distance_SetAddr(USART_TypeDef* USARTx,u8 addr_old,unsigned char addr_new)
 	Distance_SendByte(USARTx,addr_old);
 	Distance_SendByte(USARTx,0x02);
 	Distance_SendByte(USARTx,0x9A);
-	delay_ms(6);
+	BaseTimer::Instance()->delay_ms(6);
 	Distance_SendByte(USARTx,addr_old);
 	Distance_SendByte(USARTx,0x02);
 	Distance_SendByte(USARTx,0x92);
-	delay_ms(6);
+	BaseTimer::Instance()->delay_ms(6);
 	Distance_SendByte(USARTx,addr_old);
 	Distance_SendByte(USARTx,0x02);
 	Distance_SendByte(USARTx,0x9e);
-	delay_ms(6);
+	BaseTimer::Instance()->delay_ms(6);
 	Distance_SendByte(USARTx,addr_old);
 	Distance_SendByte(USARTx,0x02);
 	Distance_SendByte(USARTx,addr_new);
-	delay_ms(100);
+	BaseTimer::Instance()->delay_ms(100);
 	return 0;
 }
 
@@ -197,21 +198,21 @@ void Distance_ResetAddr(Distance_TypeDef* Distance_Structure)
 		Distance_SendByte(Distance_Structure->USARTx,addr_temp);
 		Distance_SendByte(Distance_Structure->USARTx,0x02);
 		Distance_SendByte(Distance_Structure->USARTx,0x9A);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 		Distance_SendByte(Distance_Structure->USARTx,addr_temp);
 		Distance_SendByte(Distance_Structure->USARTx,0x02);
 		Distance_SendByte(Distance_Structure->USARTx,0x92);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 		Distance_SendByte(Distance_Structure->USARTx,addr_temp);
 		Distance_SendByte(Distance_Structure->USARTx,0x02);
 		Distance_SendByte(Distance_Structure->USARTx,0x9e);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 		Distance_SendByte(Distance_Structure->USARTx,addr_temp);
 		Distance_SendByte(Distance_Structure->USARTx,0x02);
 		Distance_SendByte(Distance_Structure->USARTx,Distance_Structure->Addr);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 	}
-	delay_ms(100);
+	BaseTimer::Instance()->delay_ms(100);
 }
 
 void Distance_DefaultAddr(u8 row)
@@ -244,7 +245,7 @@ void Distance_DefaultAddr(u8 row)
 		USART_SendData(USART2,0x9a);
 		USART_SendData(USART3,0x9a);
 		USART_SendData(UART4,0x9a);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 		
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TC)==RESET) ;
 		while(USART_GetFlagStatus(USART2,USART_FLAG_TC)==RESET) ;
@@ -270,7 +271,7 @@ void Distance_DefaultAddr(u8 row)
 		USART_SendData(USART2,0x92);
 		USART_SendData(USART3,0x92);
 		USART_SendData(UART4,0x92);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 		
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TC)==RESET) ;
 		while(USART_GetFlagStatus(USART2,USART_FLAG_TC)==RESET) ;
@@ -296,7 +297,7 @@ void Distance_DefaultAddr(u8 row)
 		USART_SendData(USART2,0x9e);
 		USART_SendData(USART3,0x9e);
 		USART_SendData(UART4,0x9e);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 		
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TC)==RESET) ;
 		while(USART_GetFlagStatus(USART2,USART_FLAG_TC)==RESET) ;
@@ -322,16 +323,16 @@ void Distance_DefaultAddr(u8 row)
 		USART_SendData(USART2,Distance_Structure[row][1].Addr);
 		USART_SendData(USART3,Distance_Structure[row][2].Addr);
 		USART_SendData(UART4,Distance_Structure[row][3].Addr);
-		delay_ms(6);
+		BaseTimer::Instance()->delay_ms(6);
 	}
-	delay_ms(500);
+	BaseTimer::Instance()->delay_ms(500);
 }
 
 u8 Distance_ShowConnectionStatus(u8 row)
 {
 	u8 temp=0;
-	Sensor_PwrCtrl(6);
-	delay_ms(500);
+//	Sensor_PwrCtrl(6);
+	BaseTimer::Instance()->delay_ms(500);
 	Distance_Structure[row][0].Data=0xffff;
 	Distance_Structure[row][1].Data=0xffff;
 	Distance_Structure[row][2].Data=0xffff;
@@ -369,7 +370,7 @@ u8 Distance_ShowConnectionStatus(u8 row)
 	USART_SendData(USART2,0xa0);
 	USART_SendData(USART3,0xa0);
 	USART_SendData(UART4,0xa0);
-	delay_ms(5);
+	BaseTimer::Instance()->delay_ms(5);
 //	if(Distance_Structure[row][0].Data<0x400&Distance_Structure[row][0].Data>0) //兼容非定制版探头
 //	{
 //		LED_ON(0);
@@ -492,7 +493,7 @@ void Distance_Update(u8 row)
 	isData1[1]=0;
 	isData1[2]=0;
 	isData1[3]=0;
-	delay_ms(50);
+	BaseTimer::Instance()->delay_ms(50);
 	if(Distance_Structure[row][0].Data>5000)
 		Distance_Structure[row][0].Data=0xFFFF;
 	if(Distance_Structure[row][1].Data>5000)
@@ -618,7 +619,7 @@ int Distance_SetPowerMode(u8 addr,u8 Mode)
 //			0xbf 12cm-11m 范围，0-10 米量程专用指令。普通距离(带温度补偿)，返回 mm,探测最大耗时约87ms(KS103S 不支持此命令)
 int COM1_GetData(u8 addr,u8 mode,u16 *buffer)
 {
-	Sensor_PwrCtrl(4);
+//	Sensor_PwrCtrl(4);
 	while(USART_GetFlagStatus(USART1,USART_FLAG_TC)==RESET) ;
 	USART_SendData(USART1,addr);
 	while(USART_GetFlagStatus(USART1,USART_FLAG_TC)==RESET) ;
@@ -640,7 +641,7 @@ int Distance_TestConection(Distance_TypeDef* Distance_Structure)
 		Distance_SendByte(USART1,Distance_Structure->Addr);
 		Distance_SendByte(USART1,0x02);
 		Distance_SendByte(USART1,0xa0);
-		delay_ms(10);
+		BaseTimer::Instance()->delay_ms(10);
 		if(Distance_Structure->Data>0x400)
 		{
 			Distance_Structure->Data=0xffff;
@@ -654,7 +655,7 @@ int Distance_TestConection(Distance_TypeDef* Distance_Structure)
 		Distance_SendByte(USART2,Distance_Structure->Addr);
 		Distance_SendByte(USART2,0x02);
 		Distance_SendByte(USART2,0xa0);
-		delay_ms(10);
+		BaseTimer::Instance()->delay_ms(10);
 		if(Distance_Structure->Data>0x400)
 		{
 			Distance_Structure->Data=0xffff;
@@ -668,7 +669,7 @@ int Distance_TestConection(Distance_TypeDef* Distance_Structure)
 		Distance_SendByte(USART3,Distance_Structure->Addr);
 		Distance_SendByte(USART3,0x02);
 		Distance_SendByte(USART3,0xa0);
-		delay_ms(10);
+		BaseTimer::Instance()->delay_ms(10);
 		if(Distance_Structure->Data>0x400)
 		{
 			Distance_Structure->Data=0xffff;
@@ -682,7 +683,7 @@ int Distance_TestConection(Distance_TypeDef* Distance_Structure)
 		Distance_SendByte(UART4,Distance_Structure->Addr);
 		Distance_SendByte(UART4,0x02);
 		Distance_SendByte(UART4,0xa0);
-		delay_ms(10);
+		BaseTimer::Instance()->delay_ms(10);
 		if(Distance_Structure->Data>0x400)
 		{
 			Distance_Structure->Data=0xffff;
