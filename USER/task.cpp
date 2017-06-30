@@ -8,6 +8,8 @@
 
 const char reset_cmd[] = {0xa5,0x5a,0x01,0x01,0x02,0xa5,0x5a};
 
+uint32_t task_freq = 0;
+
 void sonnic_do_run()
 {
 	static bool _is_first_in = true;
@@ -49,8 +51,11 @@ void sonnic_do_run()
 	
 	static Timer _is_cmd_time_up(50,50);
 	static uint8_t current_col = 0;
-	if(_is_cmd_time_up.isAbsoluteTimeUp())
+	static bool _is_data_received = false;
+	if((_is_cmd_time_up.isAbsoluteTimeUp()) | (_is_data_received == true))
 	{
+		++task_freq;
+		_is_cmd_time_up.reset();
 		if(current_col < _valid_col)
 		{
 			led_write(_valid_sonic[current_col]->get_status());
@@ -61,6 +66,8 @@ void sonnic_do_run()
 		}
 	}
 	_valid_sonic[current_col-1]->read_data();
+	_is_data_received = _valid_sonic[current_col-1]->is_data_received();
+	
 }
 
 void led_do_run()
@@ -81,6 +88,7 @@ void led_do_run()
 void report_do_run()
 {
 	static Timer _is_time_up(50,50);
+	static Timer _is_1s_time_up(1000,1000);
 	static bool _is_first_in = true;
 		
 	if(_is_first_in == true)
@@ -131,6 +139,12 @@ void report_do_run()
 		//包尾
 		uart_put_char(0xa5);
 		uart_put_char(0x5a);
+	}
+	
+	if(_is_1s_time_up.isAbsoluteTimeUp())
+	{
+//		uart_printf("\r\ntask freq:%d \r\n",task_freq);
+		task_freq = 0;
 	}
 	
 	if(uart_get_buf_size() > 6)

@@ -67,6 +67,7 @@ void CSonic::send_cmd()
 	puart_send_byte(_addr);
 	puart_send_byte(0x02);
 	puart_send_byte(0xb0);
+	_is_data_received = 0;
 	puart_buf_reset(4);
 }
 
@@ -79,6 +80,7 @@ void CSonic::read_data()
 		_data[0] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[0] > SONIC_MAX_LENGTH)
 			_data[0] = 0xffff;
+		_is_data_received |= SONIC_ROW_0;
 	}
 	if(puart_get_buf_count(1) > 1)
 	{
@@ -87,6 +89,7 @@ void CSonic::read_data()
 		_data[1] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[1] > SONIC_MAX_LENGTH)
 			_data[1] = 0xffff;
+		_is_data_received |= SONIC_ROW_1;
 	}
 	if(puart_get_buf_count(2) > 1)
 	{
@@ -95,6 +98,7 @@ void CSonic::read_data()
 		_data[2] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[2] > SONIC_MAX_LENGTH)
 			_data[2] = 0xffff;
+		_is_data_received |= SONIC_ROW_2;
 	}
 	if(puart_get_buf_count(3) > 1)
 	{
@@ -103,6 +107,7 @@ void CSonic::read_data()
 		_data[3] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[3] > SONIC_MAX_LENGTH)
 			_data[3] = 0xffff;
+		_is_data_received |= SONIC_ROW_3;
 	}
 }
 
