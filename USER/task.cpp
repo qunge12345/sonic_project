@@ -134,11 +134,12 @@ void report_do_run()
 		uart_put_char(sensor_num);
 		//数据包
 		uart_send_buf(data_buf, buf_count);
+		//数据尾
+		uart_put_char(0x00);
 		//校验值
 		uart_put_char(check_sum);
 		//包尾
-		uart_put_char(0xa5);
-		uart_put_char(0x5a);
+		uart_put_char(0x0D);
 	}
 	
 	if(_is_1s_time_up.isAbsoluteTimeUp())
