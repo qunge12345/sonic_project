@@ -48,26 +48,28 @@ void sonnic_do_run()
 		}
 		pwr_on(PWRALL);
 	}
-	
-	static Timer _is_cmd_time_up(50,50);
+
+	static Timer _is_cmd_time_up(50,100);
 	static uint8_t current_col = 0;
-	static bool _is_data_received = false;
-	if((_is_cmd_time_up.isAbsoluteTimeUp()) | (_is_data_received == true))
+	
+	if(_is_cmd_time_up.isAbsoluteTimeUp())
 	{
 		++task_freq;
-		_is_cmd_time_up.reset();
-		if(current_col < _valid_col)
+		
+		// check timeout
+		_valid_sonic[current_col-1]->check_offline();
+		
+		if(current_col >= _valid_col)
 		{
-			led_write(_valid_sonic[current_col]->get_status());
-			_valid_sonic[current_col]->send_cmd();
-			++current_col;
-		}else{
-			current_col =0;
+				current_col = 0;
 		}
+		
+		led_write(_valid_sonic[current_col]->get_status());
+		_valid_sonic[current_col++]->send_cmd();
 	}
-	_valid_sonic[current_col-1]->read_data();
-	_is_data_received = _valid_sonic[current_col-1]->is_data_received();
 	
+	// read every frame
+	_valid_sonic[current_col-1]->read_data();	
 }
 
 void led_do_run()

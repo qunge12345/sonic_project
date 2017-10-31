@@ -9,6 +9,11 @@ uint8_t valid_addr[]={0xd0,0xd2,0xd4,0xd6,0xd8,0xda,0xdc,0xde,
 CSonic::CSonic(uint8_t addr)
 {
 	_addr = addr;
+	for(int i = 0; i < 4; ++i)
+	{
+		_data[i] = 0;
+		_timeoutCount[i] = 0;
+	}
 //	reset_id();
 }
 
@@ -139,6 +144,26 @@ void CSonic::detect()
 		_is_valid |= SONIC_ROW_3;
 	}else{
 		_is_valid &= (~SONIC_ROW_3);
+	}
+}
+
+void CSonic::check_offline()
+{
+	for(int i = 0; i < 4; ++i)
+	{
+		if(is_data_received_by_mask(1u << i))
+		{
+			_timeoutCount[i] = 0;
+		}
+		else
+		{
+			_timeoutCount[i]++;
+			if(_timeoutCount[i] >= 20)
+			{
+				_timeoutCount[i] = 20;
+				_data[i] = 0xFFFE;
+			}
+		}
 	}
 }
 

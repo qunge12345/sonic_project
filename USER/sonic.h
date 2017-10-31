@@ -21,13 +21,16 @@ public:
 	void send_cmd();
 	void read_data();
 	void detect();
-	bool is_data_received() {return _is_data_received == _is_valid;}
+	bool is_all_data_received() {return _is_data_received == _is_valid;}
 	uint16_t get_data(uint8_t num) {return _data[num];};
 	uint16_t get_status()	{return _is_valid;};
+	bool is_data_received_by_mask(uint8_t mask) {return (_is_data_received & mask) > 0;}
+	void check_offline();
 	
 private:
 	uint8_t _addr;
 	uint16_t _data[4];
+	uint16_t _timeoutCount[4];
 	uint8_t _is_valid;
 	uint8_t _is_data_received;
 };
