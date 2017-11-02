@@ -6,7 +6,16 @@
 #include "report.h"
 #include "key.h"
 
-const char reset_cmd[] = {0xa5,0x5a,0x01,0x01,0x02,0xa5,0x5a};
+#define COLUME_NUM 2
+
+#define CMD_HEAD_1 0xA5
+#define CMD_HEAD_2 0x5A
+#define CMD_END		 0x0D
+
+#define CMD_RESET		0x01
+#define CMD_VERSION 0x02
+
+char version[4] = {6 * COLUME_NUM, 1, 1, 0}; // max_num, major, minor, fix
 
 uint32_t task_freq = 0;
 
@@ -110,12 +119,12 @@ void report_do_run()
 			row_status = Sonic[i].get_status();
 			if(row_status >0)
 			{
-				for(uint16_t m = 0;m < 4;++m)
+				for(uint16_t m = 0;m < COLUME_NUM;++m)
 				{
 					if(row_status & 0x01)
 					{
 						++sensor_num;
-						data_buf[buf_count++] = i*4 + m;											//探头编号
+						data_buf[buf_count++] = i*COLUME_NUM + m;											//探头编号
 						data_buf[buf_count++] = Sonic[i].get_data(m);					//数据低八位
 						data_buf[buf_count++] = (Sonic[i].get_data(m)>>8);		//数据高八位
 					}
@@ -126,7 +135,7 @@ void report_do_run()
 		//包头
 		uart_put_char(0xa5);
 		uart_put_char(0x5a);
-		
+
 		uint8_t check_sum = sensor_num;
 		for(uint16_t i = 0;i < buf_count;++i)
 		{
@@ -150,17 +159,25 @@ void report_do_run()
 		task_freq = 0;
 	}
 	
-	if(uart_get_buf_size() > 6)
+	if(uart_get_buf_size() > 3)
 	{
-		char cmd[7];
-		uart_read_buf(cmd,7);
+		char cmd[4];
+		uart_read_buf(cmd,4);
 		uart_clear_buf();
-		for(uint16_t i = 0;i<7;++i)
+		
+		if ( (CMD_HEAD_1 == cmd[0]) &&
+				 (CMD_HEAD_2 == cmd[1]) &&
+				 (CMD_END == cmd[3]) )
 		{
-			if(cmd[i] != reset_cmd[i])
-				return;
+			if (CMD_RESET == cmd[2])
+			{
+				NVIC_SystemReset();
+			}
+			else if(CMD_VERSION == cmd[2])
+			{
+				uart_send_buf(version, 4);
+			}
 		}
-		NVIC_SystemReset();
 	}
 }
 
