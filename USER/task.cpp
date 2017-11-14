@@ -71,6 +71,12 @@ void sonnic_do_run()
 				}
 			}
 		}
+		
+		// initialize modbus slave
+		ModbusSlave::Instance()->run();
+		ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_MAJOR) = 2;
+		ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_MINOR) = 1;
+		ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_FIX) = 0;
 		ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::TERMINAL_NUM) = sensor_num;
 	}
 	
