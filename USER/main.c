@@ -5,33 +5,36 @@
 #include "CommonConfig.h"
 #include "ModbusRtuSlave.h"
 #include "CUsart.h"
-	
+#include "Console.h"
+
 int main(void)
 {
 	CommonConfig();
 	BaseTimer::Instance()->initialize();
 	BaseTimer::Instance()->start();
 	pwr_init();
-	
+
 	// initialize sonic uart
 	puart_init();
 
+	Console::Instance()->printf("Program start\r\n");
 	// initialize modbus slave
 	ModbusSlave::Instance()->run();
-	ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_MAJOR) = 2;
-	ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_MINOR) = 1;
-	ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_FIX) = 0;
+	
+	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MAJOR) = 2;
+	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MINOR) = 1;
+	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 0;
 
 	//InitWatchDog(2000);
-	
+
 	while(1)
 	{
 		led_do_run();
 		sonnic_do_run();
-		key_scan_do_run();
-		
-		ModbusSlave::Instance()->run();
-		ServiceDog();
+//		key_scan_do_run();
+
+//		ModbusSlave::Instance()->run();
+//		ServiceDog();
 	}
 
 }
@@ -44,11 +47,11 @@ int main(void)
   * @retval None
   */
 void assert_failed(uint8_t* file, uint32_t line)
-{ 
+{
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 	Timer loopTimer(1000,1000);
-	
+
   /* Infinite loop */
   while (1)
   {

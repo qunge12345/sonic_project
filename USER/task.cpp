@@ -71,7 +71,7 @@ void sonnic_do_run()
 				}
 			}
 		}
-		ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::TERMINAL_NUM) = sensor_num;
+		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::TERMINAL_NUM) = sensor_num;
 	}
 	
 	// read sonic data
@@ -97,7 +97,7 @@ void sonnic_do_run()
 		{
 			for (size_t j = 0; j < COLUME_NUM; j++)
 			{
-				ModbusSlave::Instance()->inputReg().at(i * 2  + j) = Sonic[i].get_data(j);
+				ModbusSlave::Instance()->inputReg(i * 2  + j) = Sonic[i].get_data(j);
 			}
 		}
 	}

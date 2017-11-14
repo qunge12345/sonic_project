@@ -34,6 +34,7 @@ enum holdingRegEnum
 {
 	COMMAND_RESET = 0,	
 	COMMAND_IAP,
+	HOLDING_REG_RSV,
 	HOLDING_REG_NUM //do not add element after this line
 };
 

@@ -4,8 +4,8 @@
 #include "mbproto.h"
 #include <stdint.h>
 #include "CharDev.h"
-#include "array.h"
 #include "mbcrc.h"
+#include "ringque.h"
 
 class CModbusCharDev
 	:public CCharDev
@@ -25,6 +25,9 @@ class CModbusCharDev
 		
 		virtual void runTransmitter(){};
 		virtual void runReceiver(){};
+			
+		ringque<uint8_t, 40> txQue_;
+		ringque<uint8_t, 20> rxQue_;
 		
 };
 
@@ -35,11 +38,9 @@ class CModbusRtuSlave
 		void run();
 	
 #include "ObjectDict.h"	
-		typedef array<uint16_t, INPUT_REG_NUM> inputRegTyp;
-		typedef array<uint16_t, HOLDING_REG_NUM> holdingRegTyp;
 		
-		inputRegTyp& inputReg() {return inputReg_;}
-		holdingRegTyp& holdingReg() {return holdingReg_;}
+		uint16_t& inputReg(uint16_t idx) {return inputReg_[idx];}
+		uint16_t holdingReg(uint16_t idx) {return holdingReg_[idx];}
 	
 	private:
 		bool isFirstIn_;
@@ -53,11 +54,15 @@ class CModbusRtuSlave
 		void printWorkBuf()
 		{
 		}
+		enum
+		{
+			WORK_BUF_LEN = 25
+		};
 		
 	private:
-		static inputRegTyp inputReg_;
-		static holdingRegTyp holdingReg_;
-		static array<uint8_t, 50> workBuf_;
+		static uint16_t inputReg_[INPUT_REG_NUM];
+		static uint16_t holdingReg_[HOLDING_REG_NUM];
+		static uint8_t workBuf_[WORK_BUF_LEN];
 		uint16_t workBufMsgLen_;
 };	
 

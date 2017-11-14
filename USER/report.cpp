@@ -98,22 +98,22 @@ void uart_read_buf(char * s,uint16_t length)
 	}
 }
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-	 
-void UART5_IRQHandler(void)
-{
-	if(USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
-	{
-		if(uart_buf.buf_count < MAX_BUF_SIZE)
-		{
-			uart_buf.buf[uart_buf.buf_count++] = USART_ReceiveData(UART5);
-		}
-	}
-}
-	 
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+// extern "C" {
+//#endif
+//	 
+//void UART5_IRQHandler(void)
+//{
+//	if(USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
+//	{
+//		if(uart_buf.buf_count < MAX_BUF_SIZE)
+//		{
+//			uart_buf.buf[uart_buf.buf_count++] = USART_ReceiveData(UART5);
+//		}
+//	}
+//}
+//	 
+//#ifdef __cplusplus
+//}
+//#endif
 
