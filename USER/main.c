@@ -3,23 +3,59 @@
 #include "task.h"
 #include "pwr_ctrl.h"
 #include "CommonConfig.h"
+#include "ModbusRtuSlave.h"
+#include "CUsart.h"
 	
 int main(void)
 {
+	CommonConfig();
 	BaseTimer::Instance()->initialize();
+	BaseTimer::Instance()->start();
 	pwr_init();
+	
+	// initialize sonic uart
 	puart_init();
-	InitWatchDog(2000);
+
+	// initialize modbus slave
+	ModbusSlave::Instance()->run();
+	ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_MAJOR) = 2;
+	ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_MINOR) = 1;
+	ModbusSlave::Instance()->inputReg().at(CModbusRtuSlave::VERSION_FIX) = 0;
+
+	//InitWatchDog(2000);
 	
 	while(1)
 	{
 		led_do_run();
 		sonnic_do_run();
-		report_do_run();
 		key_scan_do_run();
+		
+		ModbusSlave::Instance()->run();
 		ServiceDog();
 	}
 
 }
 
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *   where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t* file, uint32_t line)
+{ 
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+	Timer loopTimer(1000,1000);
+	
+  /* Infinite loop */
+  while (1)
+  {
+		if(loopTimer.isAbsoluteTimeUp())
+		{
+			// say something fuck
+		}
+  }
+}
 

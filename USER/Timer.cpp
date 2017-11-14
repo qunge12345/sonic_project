@@ -19,7 +19,6 @@ void CBaseTimer::doUpdate()
 	_baseTimer &= 0x7FFFFFFF;
 }
 
-long local_temp;
 void CBaseTimer::delay_ms(uint16_t value)
 {
 	int32_t inTime = _baseTimer;

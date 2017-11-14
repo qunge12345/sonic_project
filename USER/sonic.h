@@ -25,6 +25,7 @@ public:
 	uint16_t get_data(uint8_t num) {return _data[num];};
 	uint16_t get_status()	{return _is_valid;};
 	bool is_data_received_by_mask(uint8_t mask) {return (_is_data_received & mask) > 0;}
+	bool is_single_valid(uint8_t mask){return (_is_valid & mask) > 0;}
 	void check_offline();
 	
 private:

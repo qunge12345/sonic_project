@@ -2,6 +2,7 @@
 #include "pwr_ctrl.h"
 #include "timer.h"
 #include "puart.h"
+#include "ObjectDict.h"
 
 uint8_t valid_addr[]={0xd0,0xd2,0xd4,0xd6,0xd8,0xda,0xdc,0xde,
 	0xe0,0xe2,0xe4,0xe6,0xe8,0xea,0xec,0xee,0xf8,0xfa,0xfc,0xfe};
@@ -11,7 +12,7 @@ CSonic::CSonic(uint8_t addr)
 	_addr = addr;
 	for(int i = 0; i < 4; ++i)
 	{
-		_data[i] = 0;
+		_data[i] = KS103_SONIC_OFF;
 		_timeoutCount[i] = 0;
 	}
 //	reset_id();
@@ -84,7 +85,7 @@ void CSonic::read_data()
 		puart_read_buf(0,tmp,2);
 		_data[0] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[0] > SONIC_MAX_LENGTH)
-			_data[0] = 0xffff;
+			_data[0] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_0;
 	}
 	if(puart_get_buf_count(1) > 1)
@@ -93,7 +94,7 @@ void CSonic::read_data()
 		puart_read_buf(1,tmp,2);
 		_data[1] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[1] > SONIC_MAX_LENGTH)
-			_data[1] = 0xffff;
+			_data[1] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_1;
 	}
 	if(puart_get_buf_count(2) > 1)
@@ -102,7 +103,7 @@ void CSonic::read_data()
 		puart_read_buf(2,tmp,2);
 		_data[2] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[2] > SONIC_MAX_LENGTH)
-			_data[2] = 0xffff;
+			_data[2] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_2;
 	}
 	if(puart_get_buf_count(3) > 1)
@@ -111,7 +112,7 @@ void CSonic::read_data()
 		puart_read_buf(3,tmp,2);
 		_data[3] = ((uint16_t)tmp[0]<<8) + tmp[1];
 		if(_data[3] > SONIC_MAX_LENGTH)
-			_data[3] = 0xffff;
+			_data[3] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_3;
 	}
 }
@@ -151,17 +152,17 @@ void CSonic::check_offline()
 {
 	for(int i = 0; i < 4; ++i)
 	{
-		if(is_data_received_by_mask(1u << i))
+		uint8_t mask = 1u << i;
+		if(is_data_received_by_mask(mask) || (false == is_single_valid(mask)))
 		{
 			_timeoutCount[i] = 0;
 		}
 		else
 		{
-			_timeoutCount[i]++;
-			if(_timeoutCount[i] >= 20)
+			if(_timeoutCount[i]++ >= 20)
 			{
 				_timeoutCount[i] = 20;
-				_data[i] = 0xFFFE;
+				_data[i] = KS103_SONIC_OFFLINE;
 			}
 		}
 	}
