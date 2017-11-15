@@ -6,10 +6,13 @@
 #include "ModbusRtuSlave.h"
 #include "CUsart.h"
 #include "Console.h"
+#include "powerupOption.h"
 
 int main(void)
 {
+	SCB->VTOR = 0x08008000;
 	CommonConfig();
+	pvf::initInApp();
 	BaseTimer::Instance()->initialize();
 	BaseTimer::Instance()->start();
 	pwr_init();
@@ -30,7 +33,7 @@ int main(void)
 	while(1)
 	{
 		led_do_run();
-		sonnic_do_run();
+//		sonnic_do_run();
 		key_scan_do_run();
 
 		ModbusSlave::Instance()->run();

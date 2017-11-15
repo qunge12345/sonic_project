@@ -27,6 +27,7 @@ class CModbusRtuSlave
 		
 		int decode(uint8_t& func, uint16_t& addr, uint16_t& data);
 		int execute(uint8_t func, uint16_t addr, uint16_t data);
+		void executeErr(uint8_t func, uint8_t errcode);
 		void reply();
 		
 		void printWorkBuf()

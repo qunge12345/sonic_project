@@ -3,6 +3,8 @@
 #include "mbcrc.h"
 #include "ringque.h"
 #include "Console.h"
+#include "powerupOption.h"
+#include "stmflash.h"
 
 #define DEFAULT_SLAVE_ID	1
 
@@ -64,7 +66,7 @@ void CModbusRtuSlave::Init()
 
 	USART_InitTypeDef USART_InitStructure;
 
-	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_BaudRate = 9600;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -177,10 +179,15 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 	{
 		uint16_t* pReg;
 		uint16_t dataNum = data;
-		(MB_FUNC_READ_INPUT_REGISTER == funCode) ? (pReg = (uint16_t*)&inputReg_) : (pReg = (uint16_t*)&holdingReg_);
-		if(addr + dataNum > INPUT_REG_NUM)
+		uint16_t dataLimit = 0;
+		(MB_FUNC_READ_INPUT_REGISTER == funCode) ? 
+			(pReg = (uint16_t*)&inputReg_, dataLimit = INPUT_REG_NUM) : 
+			(pReg = (uint16_t*)&holdingReg_, dataLimit = HOLDING_REG_NUM);
+		
+		if(addr + dataNum > dataLimit)
 		{
-			Console::Instance()->printf("invalid address\r\n");
+			Console::Instance()->printf("access invalid address\r\n");
+			executeErr(funCode, MB_EX_ILLEGAL_DATA_ADDRESS);
 			return -1;
 		}
 
@@ -207,6 +214,7 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 		if(addr >= HOLDING_REG_NUM)
 		{
 			Console::Instance()->printf("invalid address\r\n");
+			executeErr(funCode, MB_EX_ILLEGAL_DATA_ADDRESS);
 			return -1;
 		}
 
@@ -219,12 +227,25 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 		}
 		else if (COMMAND_IAP == addr)
 		{
-			// todo
+			pvf::write(pvf::VAR_BOOT_OPTI, BOOT_PARAM_BL);
 		}
 		return 0;
 	}
 
 	return -1;
+}
+
+void CModbusRtuSlave::executeErr(uint8_t func, uint8_t errcode)
+{
+	workBuf_.resize(3 + 2);
+	workBuf_.at(0) = CModbusRtuSlave::SLAVE_ID;
+	workBuf_.at(1) = func | 0x80;
+	workBuf_.at(2) = errcode;
+
+	uint16_t crcResult = usMBCRC16(workBuf_.begin() , workBuf_.size() - 2);
+
+	workBuf_.at(workBuf_.size() - 2) = crcResult & 0xFF;
+	workBuf_.at(workBuf_.size() - 1) = crcResult >> 8;
 }
 
 /**
@@ -266,11 +287,7 @@ void CModbusRtuSlave::run()
 			return;
 		}
 
-		if(execute(funCode, addr, data) != 0)
-		{
-			printWorkBuf();
-			return;
-		}
+		execute(funCode, addr, data);
 		reply();
 	}
 }
