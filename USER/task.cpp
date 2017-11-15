@@ -71,45 +71,43 @@ void sonnic_do_run()
 				}
 			}
 		}
-
-		// initialize modbus slave
-//		ModbusSlave::Instance()->run();
-//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MAJOR) = 2;
-//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MINOR) = 1;
-//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 0;
-//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::TERMINAL_NUM) = sensor_num;
 	}
 
 	// read sonic data
 	static Timer _is_cmd_time_up(50,100);
-	static uint8_t current_col = 0;
+	static int current_col = 0;
+	static int last_col = 0;
 
-	if(_is_cmd_time_up.isAbsoluteTimeUp())
+	if (_valid_col > 0)
 	{
-		++task_freq;
-
-		// check timeout
-		_valid_sonic[current_col-1]->check_offline();
-
-		if(current_col >= _valid_col)
+		if(_is_cmd_time_up.isAbsoluteTimeUp())
 		{
-				current_col = 0;
-		}
+			++task_freq;
 
-		led_write(_valid_sonic[current_col]->get_status());
-		_valid_sonic[current_col++]->send_cmd();
+			// check timeout
+			int last_col = (current_col - 1 >= 0) ? (current_col - 1) : (_valid_col - 1);
+			_valid_sonic[last_col]->check_offline();
 
-		for (size_t i = 0; i < 6; ++i)
-		{
-			for (size_t j = 0; j < COLUME_NUM; j++)
+			if(current_col >= _valid_col)
 			{
-				ModbusSlave::Instance()->inputReg(i * 2  + j) = Sonic[i].get_data(j);
+					current_col = 0;
+			}
+			led_write(_valid_sonic[current_col]->get_status());
+			_valid_sonic[current_col]->send_cmd();
+			current_col++;
+
+			for (size_t i = 0; i < 6; ++i)
+			{
+				for (size_t j = 0; j < COLUME_NUM; j++)
+				{
+					ModbusSlave::Instance()->inputReg(i * 2  + j) = Sonic[i].get_data(j);
+				}
 			}
 		}
-	}
 
-	// read every frame
-	_valid_sonic[current_col-1]->read_data();
+		// read every frame
+		_valid_sonic[last_col]->read_data();	
+	}
 }
 
 void led_do_run()
