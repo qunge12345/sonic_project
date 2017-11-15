@@ -449,6 +449,16 @@
               <FileType>8</FileType>
               <FilePath>.\USER\ModbusRtuSlave.cpp</FilePath>
             </File>
+            <File>
+              <FileName>stmflash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\stmflash.c</FilePath>
+            </File>
+            <File>
+              <FileName>powerupOption.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\USER\powerupOption.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

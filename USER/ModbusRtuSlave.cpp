@@ -227,7 +227,7 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 		}
 		else if (COMMAND_IAP == addr)
 		{
-			pvf::write(pvf::VAR_BOOT_OPTI, BOOT_PARAM_BL);
+//			pvf::write(pvf::VAR_BOOT_OPTI, BOOT_PARAM_BL);
 		}
 		return 0;
 	}
