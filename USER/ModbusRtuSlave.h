@@ -6,36 +6,14 @@
 #include "CharDev.h"
 #include "mbcrc.h"
 #include "ringque.h"
-
-class CModbusCharDev
-	:public CCharDev
-{
-	public:
-		CModbusCharDev(uint32_t break_period);
-		virtual int open();
-		virtual int close() {return 0;}
-	
-		virtual int write(const uint8_t*, uint32_t);
-		virtual int read(uint8_t*, uint32_t);
-	
-		virtual uint32_t data_in_write_buf();
-		virtual uint32_t freesize_in_write_buf();
-		virtual uint32_t data_in_read_buf();
-		virtual void clear_read_buf();
-		
-		virtual void runTransmitter(){};
-		virtual void runReceiver(){};
-			
-		ringque<uint8_t, 40> txQue_;
-		ringque<uint8_t, 20> rxQue_;
-		
-};
+#include "fixed_vector.h"
 
 class CModbusRtuSlave
 {
 	public:
 		CModbusRtuSlave();
 		void run();
+		void irqRun();
 	
 #include "ObjectDict.h"	
 		
@@ -43,9 +21,9 @@ class CModbusRtuSlave
 		uint16_t holdingReg(uint16_t idx) {return holdingReg_[idx];}
 	
 	private:
+		void Init();
 		bool isFirstIn_;
 		uint8_t errCnt_;
-		CModbusCharDev charDev_;
 		
 		int decode(uint8_t& func, uint16_t& addr, uint16_t& data);
 		int execute(uint8_t func, uint16_t addr, uint16_t data);
@@ -56,14 +34,16 @@ class CModbusRtuSlave
 		}
 		enum
 		{
-			WORK_BUF_LEN = 25
+			WORK_BUF_LEN = 50
 		};
 		
 	private:
 		static uint16_t inputReg_[INPUT_REG_NUM];
 		static uint16_t holdingReg_[HOLDING_REG_NUM];
-		static uint8_t workBuf_[WORK_BUF_LEN];
-		uint16_t workBufMsgLen_;
+		bool dataflowBreak_;
+		static ringque<uint8_t, 40> txQue_;
+		static fixed_vector<uint8_t, WORK_BUF_LEN> workBuf_;
+//		ringque<uint8_t, 20> rxQue_;
 };	
 
 typedef NormalSingleton<CModbusRtuSlave>	ModbusSlave;

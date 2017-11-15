@@ -17,19 +17,19 @@ void sonnic_do_run()
 	static bool _is_first_in = true;
 	static uint16_t _valid_col = 0;
 	static CSonic* _valid_sonic[6];
-	
+
 	if(true == _is_first_in)
 	{
 		_is_first_in = false;
-		
+
 		for(uint16_t i = 0;i<6;++i)									//复位ID
 		{
 			Sonic[i].reset_id();
 		}
-		
+
 		pwr_on(PWRALL);
 		BaseTimer::Instance()->delay_ms(100);				//开启所有超声电源
-		
+
 		for(uint16_t i = 0;i<6;++i)									//检测超声
 		{
 			Sonic[i].detect();
@@ -51,7 +51,7 @@ void sonnic_do_run()
 		pwr_on(PWRALL);
 
 		// initialize watch dog
-		InitWatchDog(2000);
+//		InitWatchDog(2000);
 
 		// sonic num
 		uint16_t sensor_num = 0;
@@ -71,25 +71,31 @@ void sonnic_do_run()
 				}
 			}
 		}
-		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::TERMINAL_NUM) = sensor_num;
+
+		// initialize modbus slave
+//		ModbusSlave::Instance()->run();
+//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MAJOR) = 2;
+//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MINOR) = 1;
+//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 0;
+//		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::TERMINAL_NUM) = sensor_num;
 	}
-	
+
 	// read sonic data
 	static Timer _is_cmd_time_up(50,100);
 	static uint8_t current_col = 0;
-	
+
 	if(_is_cmd_time_up.isAbsoluteTimeUp())
 	{
 		++task_freq;
-		
+
 		// check timeout
 		_valid_sonic[current_col-1]->check_offline();
-		
+
 		if(current_col >= _valid_col)
 		{
 				current_col = 0;
 		}
-		
+
 		led_write(_valid_sonic[current_col]->get_status());
 		_valid_sonic[current_col++]->send_cmd();
 
@@ -101,9 +107,9 @@ void sonnic_do_run()
 			}
 		}
 	}
-	
+
 	// read every frame
-	_valid_sonic[current_col-1]->read_data();	
+	_valid_sonic[current_col-1]->read_data();
 }
 
 void led_do_run()

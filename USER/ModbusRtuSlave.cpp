@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include "mbcrc.h"
 #include "ringque.h"
+#include "Console.h"
 
-#define MODBUS_UART USART1
 #define DEFAULT_SLAVE_ID	1
 
 const uint8_t RECV_BUFF_SIZE = 30;
@@ -11,21 +11,17 @@ static uint8_t recvBuf[RECV_BUFF_SIZE];
 
 uint16_t CModbusRtuSlave::inputReg_[INPUT_REG_NUM];
 uint16_t  CModbusRtuSlave::holdingReg_[HOLDING_REG_NUM];
-uint8_t CModbusRtuSlave::workBuf_[WORK_BUF_LEN];
+ringque<uint8_t, 40> CModbusRtuSlave::txQue_;
+fixed_vector<uint8_t, CModbusRtuSlave::WORK_BUF_LEN> CModbusRtuSlave::workBuf_;
 
 #define MODBUS_USART UART5
-
-CModbusCharDev::CModbusCharDev(uint32_t break_period)
-	:CCharDev(break_period)
-{
-}
 
 /**
 	* @brief  open device
 	* @param  None
 	* @retval 1: success
 	*/
-int CModbusCharDev::open()
+void CModbusRtuSlave::Init()
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	uint32_t RCC_APB2Periph_GPIOx;
@@ -77,7 +73,7 @@ int CModbusCharDev::open()
 
 	NVIC_InitTypeDef NVIC_InitStructure;
 	if(MODBUS_USART == UART5)
-		NVIC_InitStructure.NVIC_IRQChannel = UART4_IRQn;
+		NVIC_InitStructure.NVIC_IRQChannel = UART5_IRQn;
 	else
 		while(1);
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
@@ -85,98 +81,23 @@ int CModbusCharDev::open()
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
-	USART_ITConfig(MODBUS_USART,USART_IT_TXE,ENABLE);
+	USART_ITConfig(MODBUS_USART,USART_IT_TC,ENABLE);
 	USART_ITConfig(MODBUS_USART,USART_IT_RXNE,ENABLE);
+	USART_ITConfig(MODBUS_USART,USART_IT_IDLE,ENABLE);
 
 	USART_Cmd(MODBUS_USART, DISABLE);
 	USART_Init(MODBUS_USART, &USART_InitStructure);
 	USART_Cmd(MODBUS_USART, ENABLE);
-
-	return 1;
 }
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-void UART5_IRQHandler(void)
-{
-	if(USART_GetITStatus(UART5,USART_IT_RXNE) == SET)
-	{
 
-	}
-	else if(USART_GetITStatus(UART5,USART_IT_TXE) == SET)
-	{
+extern "C" {
 
+	void UART5_IRQHandler(void)
+	{
+		ModbusSlave::Instance()->irqRun();
 	}
 
-}
-#ifdef __cplusplus
- }
-#endif
-/**
-	* @brief  write
-	* @param  None
-	* @retval None
-	*/
-int CModbusCharDev::write(const uint8_t* buff, uint32_t len)
-{
-	if(data_in_write_buf() > 0)
-	{
-		return -1;
-	}
-
-	return txQue_.push_array((uint8_t*)buff, len);
-}
-
-/**
-	* @brief  read
-	* @param  buff:
-	* @param  len:
-	* @retval bytes that actually get
-	*/
-int CModbusCharDev::read(uint8_t* buff, uint32_t len)
-{
-	return rxQue_.push_array(buff, len);
-}
-
-/**
-	* @brief  data_in_write_buf
-	* @param  None
-	* @retval None
-	*/
-uint32_t CModbusCharDev::data_in_write_buf()
-{
-	return txQue_.elemsInQue();
-}
-
-/**
-	* @brief  freesize_in_write_buf
-	* @param  None
-	* @retval None
-	*/
-uint32_t CModbusCharDev::freesize_in_write_buf()
-{
-	return txQue_.emptyElemsInQue();
-}
-
-/**
-	* @brief  data_in_read_buf
-	* @param  None
-	* @retval None
-	*/
-uint32_t CModbusCharDev::data_in_read_buf()
-{
-	return rxQue_.elemsInQue();
-}
-
-/**
-	* @brief  clear_read_buf
-	* @param  None
-	* @retval None
-	*/
-void CModbusCharDev::clear_read_buf()
-{
-	rxQue_.clear();
 }
 
 /**
@@ -185,8 +106,7 @@ void CModbusCharDev::clear_read_buf()
 	*/
 CModbusRtuSlave::CModbusRtuSlave()
 	:isFirstIn_(true),
-	errCnt_(0),
-	charDev_(5)
+	errCnt_(0)
 {
 	inputReg_[1] = 0x5544;
 }
@@ -201,28 +121,45 @@ CModbusRtuSlave::CModbusRtuSlave()
 	*/
 int CModbusRtuSlave::decode(uint8_t& funCode, uint16_t& addr, uint16_t& data)
 {
-	if(workBuf_[0]!=  CModbusRtuSlave::SLAVE_ID)
+	int ret = -1;
+	do
 	{
-		//Console::Instance()->printf("slaver id%d unmatch", workBuf_[0]);
-		return -1;
+		if(workBuf_.at(0)!=  CModbusRtuSlave::SLAVE_ID)
+		{
+			Console::Instance()->printf("slaver id%d unmatch\r\n", workBuf_.at(0));
+			break;
+		}
+
+		if(workBuf_.size() < 3)
+		{
+			Console::Instance()->printf("Message less than 3 bytes\r\n");
+			break;
+		}
+
+		uint16_t crcResult = ((uint16_t)workBuf_.at(workBuf_.size() - 1) << 8) + workBuf_.at(workBuf_.size() - 2);
+		if(usMBCRC16(workBuf_.begin(), workBuf_.size() - 2) != crcResult)
+		{
+			Console::Instance()->printf("CRC failed,should be 0x%X, get 0x%X\r\n", 
+				usMBCRC16(workBuf_.begin(), workBuf_.size() - 2), 
+				crcResult);
+			
+			Console::Instance()->printf("buff size = %d\r\n", workBuf_.size());
+			
+			break;
+		}
+		ret = 0;
+		
+	}while(0);
+	
+	if(ret < 0)
+	{
+		workBuf_.clear();
+		return ret;
 	}
 
-	if(workBufMsgLen_ < 3)
-	{
-		//Console::Instance()->printf("Message less than 3 bytes\r\n");
-		return -1;
-	}
-
-	uint16_t crcResult = ((uint16_t)workBuf_[workBufMsgLen_ - 1] << 8) + workBuf_[workBufMsgLen_ - 2];
-	if(usMBCRC16(workBuf_, workBufMsgLen_ - 2) != crcResult)
-	{
-		//Console::Instance()->printf("CRC failed,should be 0x%X, get 0x%X\r\n", usMBCRC16(workBuf_.begin(), workBufMsgLen_ - 2), crcResult);
-		return -1;
-	}
-
-	funCode = workBuf_[1];
-	addr = ((uint16_t)workBuf_[2] << 8) + workBuf_[3];
-	data = ((uint16_t)workBuf_[4] << 8) + workBuf_[5];
+	funCode = workBuf_.at(1);
+	addr = ((uint16_t)workBuf_.at(2) << 8) + workBuf_.at(3);
+	data = ((uint16_t)workBuf_.at(4) << 8) + workBuf_.at(5);
 	return 0;
 }
 
@@ -243,25 +180,25 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 		(MB_FUNC_READ_INPUT_REGISTER == funCode) ? (pReg = (uint16_t*)&inputReg_) : (pReg = (uint16_t*)&holdingReg_);
 		if(addr + dataNum > INPUT_REG_NUM)
 		{
-			//Console::Instance()->printf("invalid address\r\n");
+			Console::Instance()->printf("invalid address\r\n");
 			return -1;
 		}
 
-		workBuf_[0] = CModbusRtuSlave::SLAVE_ID;
-		workBuf_[1] = funCode;
-		workBuf_[2] = 2 * dataNum;//2bytes per register
+		workBuf_.at(0) = CModbusRtuSlave::SLAVE_ID;
+		workBuf_.at(1) = funCode;
+		workBuf_.at(2) = 2 * dataNum;//2bytes per register
 
-		workBufMsgLen_ = 3 + 2 * dataNum + 2;
+		workBuf_.resize(3 + 2 * dataNum + 2);
 
 		for(int i = 0; i < dataNum; i++)
 		{
-			workBuf_[3 + 2*i] = pReg[i] >> 8;
-			workBuf_[3 + 2*i + 1] = pReg[i] & 0xFF;
+			workBuf_.at(3 + 2*i) = pReg[i] >> 8;
+			workBuf_.at(3 + 2*i + 1) = pReg[i] & 0xFF;
 		}
-		uint16_t crcResult = usMBCRC16(workBuf_, workBufMsgLen_ - 2);
+		uint16_t crcResult = usMBCRC16(workBuf_.begin() , workBuf_.size() - 2);
 
-		workBuf_[workBufMsgLen_ - 2] = crcResult & 0xFF;
-		workBuf_[workBufMsgLen_ - 1] = crcResult >> 8;
+		workBuf_.at(workBuf_.size() - 2) = crcResult & 0xFF;
+		workBuf_.at(workBuf_.size() - 1) = crcResult >> 8;
 
 		return 0;
 	}
@@ -269,7 +206,7 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 	{
 		if(addr >= HOLDING_REG_NUM)
 		{
-			//Console::Instance()->printf("invalid address\r\n");
+			Console::Instance()->printf("invalid address\r\n");
 			return -1;
 		}
 
@@ -297,7 +234,10 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 	*/
 void CModbusRtuSlave::reply()
 {
-	charDev_.write(workBuf_, workBufMsgLen_);
+	txQue_.push_array(workBuf_.begin(), workBuf_.size());
+	workBuf_.clear();
+	USART_SendData(MODBUS_USART, txQue_.front());
+	txQue_.pop();
 }
 
 
@@ -310,18 +250,16 @@ void CModbusRtuSlave::run()
 {
 	if(isFirstIn_)
 	{
-		charDev_.open();
+		Init();
 		isFirstIn_ = false;
 	}
 
-	charDev_.update_data_break_flag();
-
-	if(charDev_.is_dataflow_break())
+	if(dataflowBreak_)
 	{
+		dataflowBreak_ = false;
 		uint8_t funCode;
 		uint16_t addr;
 		uint16_t data;
-		workBufMsgLen_ = charDev_.read(workBuf_, charDev_.data_in_read_buf());
 		if(decode(funCode, addr, data) != 0)
 		{
 			printWorkBuf();
@@ -333,8 +271,35 @@ void CModbusRtuSlave::run()
 			printWorkBuf();
 			return;
 		}
-		charDev_.clear_read_buf();
 		reply();
+	}
+}
+
+/**
+	* @brief  run modbus slaver for 1 time
+	* @param  None
+	* @retval None
+	*/
+void CModbusRtuSlave::irqRun()
+{
+	if(USART_GetITStatus(MODBUS_USART, USART_IT_RXNE) == SET)
+	{
+		USART_ClearITPendingBit(MODBUS_USART, USART_IT_RXNE);
+		workBuf_.push_back(MODBUS_USART->DR);
+	}
+	else if(USART_GetITStatus(MODBUS_USART, USART_IT_TC) == SET)
+	{
+		USART_ClearITPendingBit(MODBUS_USART, USART_IT_TC);
+		if(txQue_.elemsInQue() > 0)
+		{
+			USART_SendData(MODBUS_USART, txQue_.front());
+			txQue_.pop();
+		}
+	}
+	else if(USART_GetITStatus(MODBUS_USART, USART_IT_IDLE) == SET)
+	{
+		USART_ReceiveData(MODBUS_USART);
+		dataflowBreak_ = true;
 	}
 }
 

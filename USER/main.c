@@ -20,7 +20,7 @@ int main(void)
 	Console::Instance()->printf("Program start\r\n");
 	// initialize modbus slave
 	ModbusSlave::Instance()->run();
-	
+
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MAJOR) = 2;
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MINOR) = 1;
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 0;
@@ -31,9 +31,10 @@ int main(void)
 	{
 		led_do_run();
 		sonnic_do_run();
-//		key_scan_do_run();
+		key_scan_do_run();
 
-//		ModbusSlave::Instance()->run();
+		ModbusSlave::Instance()->run();
+		Console::Instance()->runTransmitter();
 //		ServiceDog();
 	}
 
