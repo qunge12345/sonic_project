@@ -71,6 +71,7 @@ void sonnic_do_run()
 				}
 			}
 		}
+		ModbusSlave::Instance()->inputReg(CModbusRtuSlave::TERMINAL_NUM) = sensor_num;
 	}
 
 	// read sonic data
@@ -85,7 +86,7 @@ void sonnic_do_run()
 			++task_freq;
 
 			// check timeout
-			int last_col = (current_col - 1 >= 0) ? (current_col - 1) : (_valid_col - 1);
+			last_col = (current_col - 1 >= 0) ? (current_col - 1) : (_valid_col - 1);
 			_valid_sonic[last_col]->check_offline();
 
 			if(current_col >= _valid_col)
