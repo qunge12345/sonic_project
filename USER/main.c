@@ -10,9 +10,9 @@
 
 int main(void)
 {
-//	SCB->VTOR = 0x08008000;
+	SCB->VTOR = 0x08008000;
 	CommonConfig();
-//	pvf::initInApp();
+	pvf::initInApp();
 	BaseTimer::Instance()->initialize();
 	BaseTimer::Instance()->start();
 	pwr_init();

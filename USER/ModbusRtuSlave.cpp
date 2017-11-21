@@ -8,9 +8,6 @@
 
 #define DEFAULT_SLAVE_ID	1
 
-const uint8_t RECV_BUFF_SIZE = 30;
-static uint8_t recvBuf[RECV_BUFF_SIZE];
-
 uint16_t CModbusRtuSlave::inputReg_[INPUT_REG_NUM];
 uint16_t  CModbusRtuSlave::holdingReg_[HOLDING_REG_NUM];
 ringque<uint8_t, 40> CModbusRtuSlave::txQue_;
@@ -66,7 +63,7 @@ void CModbusRtuSlave::Init()
 
 	USART_InitTypeDef USART_InitStructure;
 
-	USART_InitStructure.USART_BaudRate = 9600;
+	USART_InitStructure.USART_BaudRate = 115200;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -186,7 +183,7 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 		
 		if(addr + dataNum > dataLimit)
 		{
-			Console::Instance()->printf("access invalid address\r\n");
+			Console::Instance()->printf("access invalid address 0x%X, address limit = 0x%X\r\n", addr + dataNum, dataLimit);
 			executeErr(funCode, MB_EX_ILLEGAL_DATA_ADDRESS);
 			return -1;
 		}
@@ -199,8 +196,8 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 
 		for(int i = 0; i < dataNum; i++)
 		{
-			workBuf_.at(3 + 2*i) = pReg[i] >> 8;
-			workBuf_.at(3 + 2*i + 1) = pReg[i] & 0xFF;
+			workBuf_.at(3 + 2*i) = pReg[i + addr] >> 8;
+			workBuf_.at(3 + 2*i + 1) = pReg[i + addr] & 0xFF;
 		}
 		uint16_t crcResult = usMBCRC16(workBuf_.begin() , workBuf_.size() - 2);
 
@@ -223,11 +220,20 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 		// do command logic
 		if (COMMAND_RESET == addr)
 		{
+			Console::Instance()->printf("Get reset command\r\n");
+			txQue_.push_array(workBuf_.begin(), workBuf_.size());
+			reply();
+			while(txQue_.elemsInQue() > 0 || SET != USART_GetFlagStatus(MODBUS_USART, USART_FLAG_TXE));
 			NVIC_SystemReset();
 		}
 		else if (COMMAND_IAP == addr)
 		{
-//			pvf::write(pvf::VAR_BOOT_OPTI, BOOT_PARAM_BL);
+			Console::Instance()->printf("Get IAP command\r\n");
+			txQue_.push_array(workBuf_.begin(), workBuf_.size());
+			pvf::write(pvf::VAR_BOOT_OPTI, BOOT_PARAM_BL);
+			reply();
+			while(txQue_.elemsInQue() > 0 || SET != USART_GetFlagStatus(MODBUS_USART, USART_FLAG_TXE));
+			NVIC_SystemReset();
 		}
 		return 0;
 	}
