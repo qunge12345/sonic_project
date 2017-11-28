@@ -87,6 +87,7 @@ void sonnic_do_run()
 
 			// check timeout
 			last_col = (current_col - 1 >= 0) ? (current_col - 1) : (_valid_col - 1);
+			_valid_sonic[last_col]->read_data();
 			_valid_sonic[last_col]->check_offline();
 
 			if(current_col >= _valid_col)
@@ -104,10 +105,7 @@ void sonnic_do_run()
 					ModbusSlave::Instance()->inputReg(i * 2  + j) = Sonic[i].get_data(j);
 				}
 			}
-		}
-
-		// read every frame
-		_valid_sonic[last_col]->read_data();	
+		}	
 	}
 }
 
