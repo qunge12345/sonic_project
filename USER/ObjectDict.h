@@ -49,7 +49,7 @@ enum slaveIdEnum
 
 #define KS103_SONIC_OFF 		0xFFFF
 #define KS103_SONIC_OFFLINE 	0xFFFE
-#define KS103_SONIC_TIMEOUT 	0xFFFC
+#define KS103_SONIC_TIMEOUT 	0xFFFD
 
 #endif
 //end of file

@@ -102,7 +102,15 @@ void sonnic_do_run()
 			{
 				for (size_t j = 0; j < COLUME_NUM; j++)
 				{
-					ModbusSlave::Instance()->inputReg(i * 2  + j) = Sonic[i].get_data(j);
+					if(Sonic[i].is_single_valid(1 << j))
+					{
+						ModbusSlave::Instance()->inputReg(i * 2  + j) = Sonic[i].get_data(j);
+					}
+					else
+					{
+						ModbusSlave::Instance()->inputReg(i * 2  + j) = KS103_SONIC_OFF;
+					}						
+					
 				}
 			}
 		}	
