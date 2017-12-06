@@ -27,9 +27,7 @@ int main(void)
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MAJOR) = 2;
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MINOR) = 1;
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 0;
-
-	//InitWatchDog(2000);
-
+	
 	while(1)
 	{
 		led_do_run();
@@ -38,7 +36,7 @@ int main(void)
 
 		ModbusSlave::Instance()->run();
 		Console::Instance()->runTransmitter();
-//		ServiceDog();
+		ServiceDog();
 	}
 
 }

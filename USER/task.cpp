@@ -51,7 +51,7 @@ void sonnic_do_run()
 		pwr_on(PWRALL);
 
 		// initialize watch dog
-//		InitWatchDog(2000);
+		InitWatchDog(2000);
 
 		// sonic num
 		uint16_t sensor_num = 0;
