@@ -10,6 +10,7 @@ uint8_t valid_addr[]={0xd0,0xd2,0xd4,0xd6,0xd8,0xda,0xdc,0xde,
 CSonic::CSonic(uint8_t addr)
 {
 	_addr = addr;
+	_timestamp = 0;
 	for(int i = 0; i < 4; ++i)
 	{
 		_data[i] = KS103_SONIC_OFF;

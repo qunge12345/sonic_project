@@ -10,7 +10,7 @@
 
 uint16_t CModbusRtuSlave::inputReg_[INPUT_REG_NUM];
 uint16_t  CModbusRtuSlave::holdingReg_[HOLDING_REG_NUM];
-ringque<uint8_t, 40> CModbusRtuSlave::txQue_;
+ringque<uint8_t, 100> CModbusRtuSlave::txQue_;
 fixed_vector<uint8_t, CModbusRtuSlave::WORK_BUF_LEN> CModbusRtuSlave::workBuf_;
 
 #define MODBUS_USART UART5
@@ -118,6 +118,7 @@ CModbusRtuSlave::CModbusRtuSlave()
 	* @retval 0: success
 	* @retval -1: faild
 	*/
+extern Timer is_cmd_time_up;
 int CModbusRtuSlave::decode(uint8_t& funCode, uint16_t& addr, uint16_t& data)
 {
 	int ret = -1;
@@ -235,6 +236,11 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 			while(txQue_.elemsInQue() > 0 || SET != USART_GetFlagStatus(MODBUS_USART, USART_FLAG_TXE));
 			NVIC_SystemReset();
 		}
+		else if (COMMAND_DURATION_MS == addr)
+		{
+			Console::Instance()->printf("Change sonic query duration\r\n");
+			is_cmd_time_up = Timer(data, data);
+		}
 		return 0;
 	}
 
@@ -293,6 +299,10 @@ void CModbusRtuSlave::run()
 			return;
 		}
 
+		uint32_t ts = TimeStamp::Instance()->getTS();
+		inputReg(CModbusRtuSlave::TIMESTAMP_L) = (uint16_t)ts;
+		inputReg(CModbusRtuSlave::TIMESTAMP_H) = (uint16_t)(ts >> 16);
+		
 		execute(funCode, addr, data);
 		reply();
 	}

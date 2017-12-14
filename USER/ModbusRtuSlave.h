@@ -42,7 +42,7 @@ class CModbusRtuSlave
 		static uint16_t inputReg_[INPUT_REG_NUM];
 		static uint16_t holdingReg_[HOLDING_REG_NUM];
 		bool dataflowBreak_;
-		static ringque<uint8_t, 40> txQue_;
+		static ringque<uint8_t, 100> txQue_;
 		static fixed_vector<uint8_t, WORK_BUF_LEN> workBuf_;
 //		ringque<uint8_t, 20> rxQue_;
 };	

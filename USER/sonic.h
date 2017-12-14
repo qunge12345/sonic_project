@@ -27,10 +27,13 @@ public:
 	bool is_data_received_by_mask(uint8_t mask) {return (_is_data_received & mask) > 0;}
 	bool is_single_valid(uint8_t mask){return (_is_valid & mask) > 0;}
 	void check_offline();
+	void setTimestamp(uint32_t timestamp){_timestamp = timestamp;}
+	uint32_t getTimestamp(){return _timestamp;}
 	
 private:
 	uint8_t _addr;
 	uint16_t _data[4];
+	uint32_t _timestamp;
 	uint16_t _timeoutCount[4];
 	uint8_t _is_valid;
 	uint8_t _is_data_received;

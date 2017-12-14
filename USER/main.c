@@ -7,6 +7,7 @@
 #include "CUsart.h"
 #include "Console.h"
 #include "powerupOption.h"
+#include <stdint.h>
 
 int main(void)
 {
@@ -26,13 +27,14 @@ int main(void)
 
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MAJOR) = 2;
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MINOR) = 1;
-	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 0;
-	
+	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 1;
+
 	while(1)
 	{
 		led_do_run();
 		sonnic_do_run();
 		key_scan_do_run();
+		TimeStamp::Instance()->run();
 
 		ModbusSlave::Instance()->run();
 		Console::Instance()->runTransmitter();

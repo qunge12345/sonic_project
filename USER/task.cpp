@@ -11,6 +11,7 @@
 #define COLUME_NUM 2
 
 uint32_t task_freq = 0;
+Timer is_cmd_time_up(50,50);
 
 void sonnic_do_run()
 {
@@ -52,6 +53,8 @@ void sonnic_do_run()
 
 		// initialize watch dog
 		InitWatchDog(2000);
+		// reset timestamp
+		TimeStamp::Instance()->reset();
 
 		// sonic num
 		uint16_t sensor_num = 0;
@@ -75,13 +78,12 @@ void sonnic_do_run()
 	}
 
 	// read sonic data
-	static Timer _is_cmd_time_up(50,100);
 	static int current_col = 0;
 	static int last_col = 0;
 
 	if (_valid_col > 0)
 	{
-		if(_is_cmd_time_up.isAbsoluteTimeUp())
+		if(is_cmd_time_up.isAbsoluteTimeUp())
 		{
 			++task_freq;
 
@@ -96,6 +98,7 @@ void sonnic_do_run()
 			}
 			led_write(_valid_sonic[current_col]->get_status());
 			_valid_sonic[current_col]->send_cmd();
+			_valid_sonic[current_col]->setTimestamp(TimeStamp::Instance()->getTS());
 			current_col++;
 
 			for (size_t i = 0; i < 6; ++i)
@@ -104,7 +107,9 @@ void sonnic_do_run()
 				{
 					if(Sonic[i].is_single_valid(1 << j))
 					{
+						uint32_t timestamp = Sonic[i].getTimestamp();
 						ModbusSlave::Instance()->inputReg(i * 2  + j) = Sonic[i].get_data(j);
+						ModbusSlave::Instance()->inputReg(i * 2  + j + 18) = (uint16_t)(timestamp);
 					}
 					else
 					{

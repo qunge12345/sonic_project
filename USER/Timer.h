@@ -46,4 +46,22 @@ private:
 
 void CPUTIMER0_ISR();
 
+class CTimeStamp{
+public:
+	CTimeStamp():_ts(0),_t(1,1){}
+	void run()
+	{
+		if (_t.isAbsoluteTimeUp())
+		{
+			_ts++;
+		}
+	}
+	void reset(){_ts = 0;}
+	uint32_t getTS(){return _ts;}
+private:
+	uint32_t _ts;
+	Timer _t;
+};
+typedef NormalSingleton<CTimeStamp>	TimeStamp;
+
 #endif	//_FW_TIMER_H_
