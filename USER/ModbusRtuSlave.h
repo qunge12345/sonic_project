@@ -7,6 +7,7 @@
 #include "mbcrc.h"
 #include "ringque.h"
 #include "fixed_vector.h"
+#include "Console.h"
 
 class CModbusRtuSlave
 {
@@ -14,6 +15,11 @@ class CModbusRtuSlave
 		CModbusRtuSlave();
 		void run();
 		void irqRun();
+	
+		enum
+		{
+			WORK_BUF_LEN = 100
+		};
 	
 #include "ObjectDict.h"	
 		
@@ -32,17 +38,19 @@ class CModbusRtuSlave
 		
 		void printWorkBuf()
 		{
+			for(int i = 0; i < workBuf_.size(); i++)
+			{
+				Console::Instance()->printf("0x%02X ", workBuf_.at(i));
+			}
+			Console::Instance()->printf("\r\n");
 		}
-		enum
-		{
-			WORK_BUF_LEN = 50
-		};
+		
 		
 	private:
 		static uint16_t inputReg_[INPUT_REG_NUM];
 		static uint16_t holdingReg_[HOLDING_REG_NUM];
 		bool dataflowBreak_;
-		static ringque<uint8_t, 100> txQue_;
+		static ringque<uint8_t, WORK_BUF_LEN> txQue_;
 		static fixed_vector<uint8_t, WORK_BUF_LEN> workBuf_;
 //		ringque<uint8_t, 20> rxQue_;
 };	

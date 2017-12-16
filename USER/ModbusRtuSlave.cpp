@@ -10,7 +10,7 @@
 
 uint16_t CModbusRtuSlave::inputReg_[INPUT_REG_NUM];
 uint16_t  CModbusRtuSlave::holdingReg_[HOLDING_REG_NUM];
-ringque<uint8_t, 100> CModbusRtuSlave::txQue_;
+ringque<uint8_t, CModbusRtuSlave::WORK_BUF_LEN> CModbusRtuSlave::txQue_;
 fixed_vector<uint8_t, CModbusRtuSlave::WORK_BUF_LEN> CModbusRtuSlave::workBuf_;
 
 #define MODBUS_USART UART5
@@ -153,6 +153,8 @@ int CModbusRtuSlave::decode(uint8_t& funCode, uint16_t& addr, uint16_t& data)
 	
 	if(ret < 0)
 	{
+		Console::Instance()->printf("Decode failed\r\n");
+		printWorkBuf();
 		workBuf_.clear();
 		return ret;
 	}
@@ -192,8 +194,16 @@ int CModbusRtuSlave::execute(uint8_t funCode, uint16_t addr, uint16_t data)
 		workBuf_.at(0) = CModbusRtuSlave::SLAVE_ID;
 		workBuf_.at(1) = funCode;
 		workBuf_.at(2) = 2 * dataNum;//2bytes per register
-
-		workBuf_.resize(3 + 2 * dataNum + 2);
+		
+		uint16_t buffLength = 3 + 2 * dataNum + 2;
+		
+		if(buffLength > workBuf_.capacity())
+		{
+			Console::Instance()->printf("Workbuf capacity loss\r\n");
+			return -2;
+		}
+		
+		workBuf_.resize(buffLength);
 
 		for(int i = 0; i < dataNum; i++)
 		{
@@ -295,14 +305,12 @@ void CModbusRtuSlave::run()
 		uint16_t data;
 		if(decode(funCode, addr, data) != 0)
 		{
-			printWorkBuf();
 			return;
 		}
 
 		uint32_t ts = TimeStamp::Instance()->getTS();
 		inputReg(CModbusRtuSlave::TIMESTAMP_L) = (uint16_t)ts;
 		inputReg(CModbusRtuSlave::TIMESTAMP_H) = (uint16_t)(ts >> 16);
-		
 		execute(funCode, addr, data);
 		reply();
 	}

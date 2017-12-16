@@ -116,6 +116,8 @@ class fixed_vector
 	* @retval The number of elements in the container.
 	*/	
 		uint16_t size() { return size_; }
+		
+		uint16_t capacity() { return N; }
 
 /**
 	* @brief  Resizes the container so that it contains n elements.
