@@ -56,6 +56,12 @@ void sonnic_do_run()
 		// reset timestamp
 		TimeStamp::Instance()->reset();
 
+		// reset sonic data
+		for(uint16_t i = 0; i < 6; ++i)
+		{
+			Sonic[i].reset_data();
+		}
+
 		// sonic num
 		uint16_t sensor_num = 0;
 		for(uint16_t i = 0;i < 6;++i)

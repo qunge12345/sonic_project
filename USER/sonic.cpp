@@ -23,6 +23,15 @@ CSonic::~CSonic()
 {
 }
 
+void CSonic::reset_data()
+{
+	for(int i = 0; i < 4; ++i)
+	{
+		_data[i] = KS103_SONIC_OFF;
+		_timeoutCount[i] = 0;
+	}
+}
+
 void CSonic::reset_id()
 {
 	pwr_off(PWRALL);

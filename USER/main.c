@@ -27,7 +27,7 @@ int main(void)
 
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MAJOR) = 2;
 	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_MINOR) = 1;
-	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 1;
+	ModbusSlave::Instance()->inputReg(CModbusRtuSlave::VERSION_FIX) = 2;
 
 	while(1)
 	{

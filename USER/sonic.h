@@ -17,6 +17,7 @@ class CSonic
 public:
 	CSonic(uint8_t addr);
 	~CSonic();
+	void reset_data();
 	void reset_id();
 	void send_cmd();
 	void read_data();
