@@ -94,7 +94,7 @@ void CSonic::read_data()
 		char tmp[2];
 		puart_read_buf(0,tmp,2);
 		_data[0] = ((uint16_t)tmp[0]<<8) + tmp[1];
-		if(_data[0] > SONIC_MAX_LENGTH)
+		if(_data[0] >= SONIC_MAX_LENGTH)
 			_data[0] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_0;
 	}
@@ -103,7 +103,7 @@ void CSonic::read_data()
 		char tmp[2];
 		puart_read_buf(1,tmp,2);
 		_data[1] = ((uint16_t)tmp[0]<<8) + tmp[1];
-		if(_data[1] > SONIC_MAX_LENGTH)
+		if(_data[1] >= SONIC_MAX_LENGTH)
 			_data[1] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_1;
 	}
@@ -112,7 +112,7 @@ void CSonic::read_data()
 		char tmp[2];
 		puart_read_buf(2,tmp,2);
 		_data[2] = ((uint16_t)tmp[0]<<8) + tmp[1];
-		if(_data[2] > SONIC_MAX_LENGTH)
+		if(_data[2] >= SONIC_MAX_LENGTH)
 			_data[2] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_2;
 	}
@@ -121,7 +121,7 @@ void CSonic::read_data()
 		char tmp[2];
 		puart_read_buf(3,tmp,2);
 		_data[3] = ((uint16_t)tmp[0]<<8) + tmp[1];
-		if(_data[3] > SONIC_MAX_LENGTH)
+		if(_data[3] >= SONIC_MAX_LENGTH)
 			_data[3] = KS103_SONIC_TIMEOUT;
 		_is_data_received |= SONIC_ROW_3;
 	}
