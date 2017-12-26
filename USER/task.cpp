@@ -61,6 +61,13 @@ void sonnic_do_run()
 		{
 			Sonic[i].reset_data();
 		}
+		for (size_t i = 0; i < 6; ++i)
+		{
+			for (size_t j = 0; j < COLUME_NUM; j++)
+			{
+				ModbusSlave::Instance()->inputReg(i * 2  + j) = KS103_SONIC_OFF;
+			}
+		}
 
 		// sonic num
 		uint16_t sensor_num = 0;
