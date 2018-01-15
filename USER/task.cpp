@@ -12,6 +12,7 @@
 
 uint32_t task_freq = 0;
 Timer is_cmd_time_up(50,50);
+bool is_detected_over = false;
 
 void sonnic_do_run()
 {
@@ -50,6 +51,9 @@ void sonnic_do_run()
 			pwr_off(PWRALL);
 		}
 		pwr_on(PWRALL);
+
+		// detect over
+		is_detected_over = true;
 
 		// initialize watch dog
 		InitWatchDog(2000);
